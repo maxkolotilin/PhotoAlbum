@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewBag.Title = "Email not confirmed";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <h2>@ViewBag.Title.</h2>
+            <p>
+                This email doesn't confirmed. Please @Html.ActionLink("go to Log in page", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" }) and try to enter your account to send another confirmation email.
+            </p>
+        </div>
+    </div>
+</div>

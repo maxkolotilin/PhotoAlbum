@@ -73,22 +73,41 @@ namespace PhotoAlbum.Controllers
                 return View(model);
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, change to shouldLockout: true
-            var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
-            switch (result)
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user != null)
             {
-                case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
-                case SignInStatus.LockedOut:
-                    return View("Lockout");
-                case SignInStatus.RequiresVerification:
-                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                case SignInStatus.Failure:
-                default:
-                    ModelState.AddModelError("", "Invalid login attempt.");
-                    return View(model);
+                if (await UserManager.IsEmailConfirmedAsync(user.Id))
+                {
+                    // This doesn't count login failures towards account lockout
+                    // To enable password failures to trigger account lockout, change to shouldLockout: true
+                    var result = await SignInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, shouldLockout: true);
+                    switch (result)
+                    {
+                        case SignInStatus.Success:
+                            return RedirectToLocal(returnUrl);
+                        case SignInStatus.LockedOut:
+                            return View("Lockout");
+                        case SignInStatus.RequiresVerification:
+                            return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                        case SignInStatus.Failure:
+                        default:
+                            ModelState.AddModelError("", "Invalid login attempt.");
+                            break;
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Email doesn't confirmed");
+                    ViewBag.ShowSendEmailLink = true;
+                    ViewBag.Id = user.Id;
+                }
             }
+            else
+            {
+                ModelState.AddModelError("", "The user doesn't exist. Please, go to register page.");
+            }
+
+            return View(model);
         }
 
         //
@@ -151,25 +170,37 @@ namespace PhotoAlbum.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Name, Email = model.Email, };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
-                    return RedirectToAction("Index", "Home");
+                    await UserManager.AddToRoleAsync(user.Id, "User");
+                    return RedirectToAction("SendConfirmationEmail", new { id = user.Id });
                 }
                 AddErrors(result);
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        [AllowAnonymous]
+        public async Task<ActionResult> SendConfirmationEmail(string id)
+        {
+            try
+            {
+                string code = await UserManager.GenerateEmailConfirmationTokenAsync(id);
+                var callbackUrl = Url.Action("ConfirmEmail", "Account",
+                    new { userId = id, code = code }, protocol: Request.Url.Scheme);
+                await UserManager.SendEmailAsync(id, "Confirm your account",
+                    "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+                return View();
+            }
+            catch
+            {
+                return View("Error");
+            }
         }
 
         //
@@ -202,19 +233,19 @@ namespace PhotoAlbum.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await UserManager.FindByNameAsync(model.Email);
+                var user = await UserManager.FindByEmailAsync(model.Email);
                 if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    return View("EmailNotConfirmed");
                 }
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form
@@ -248,7 +279,7 @@ namespace PhotoAlbum.Controllers
             {
                 return View(model);
             }
-            var user = await UserManager.FindByNameAsync(model.Email);
+            var user = await UserManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
@@ -343,7 +374,8 @@ namespace PhotoAlbum.Controllers
                     // If the user does not have an account, then prompt the user to create an account
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
-                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    return View("ExternalLoginConfirmation", 
+                                new ExternalLoginConfirmationViewModel { Name = loginInfo.DefaultUserName, Email = loginInfo.Email });
             }
         }
 
@@ -367,7 +399,7 @@ namespace PhotoAlbum.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Name, Email = model.Email, EmailConfirmed = true };
                 var result = await UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

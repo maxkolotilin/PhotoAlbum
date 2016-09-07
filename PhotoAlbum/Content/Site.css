@@ -1,6 +1,22 @@
-﻿body {
+﻿.app-name {
+    font-family:'Damion', cursive;
+    font-size: 35px;
+    letter-spacing: 0px;
+}
+
+h1.app-name {
+    /*font-size: 100px !important;*/
+    font-size: 16vw;
+}
+
+body {
     padding-top: 50px;
-    padding-bottom: 20px;
+    padding-bottom: 0px;
+    /* Margin bottom by footer height */
+    margin-bottom: 50px;
+    background-color: #e3f5e3;
+    font: 400 15px Lato, sans-serif;
+    line-height: 1.8;
 }
 
 /* Set padding to keep content from hitting the edges */
@@ -20,5 +36,70 @@
 input,
 select,
 textarea {
-    max-width: 280px;
+    max-width: 300px;
 }
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 55px;
+    background-color: mediumseagreen;
+    color: white;
+}
+
+.footer-vertical-center {
+    padding-top: 15px;
+}
+
+.navbar-custom {
+    background-color: mediumseagreen;
+    border-bottom-color: mediumseagreen;
+}
+
+
+.navbar {
+    margin-bottom: 0;
+    background-color: mediumseagreen;
+    z-index: 9999;
+    border: 0;
+    font-size: 12px !important;
+    line-height: 1.42857143 !important;
+    letter-spacing: 3px;
+    border-radius: 0;
+    font-family: Montserrat, sans-serif;
+}
+
+    .navbar li a, .navbar .navbar-brand {
+        color: #fff !important;
+    }
+
+.navbar-nav li a:hover, .navbar-nav li.active a {
+    color: mediumseagreen !important;
+    background-color: #fff !important;
+}
+
+.navbar-default .navbar-toggle {
+    border-color: transparent;
+    color: #fff !important;
+}
+
+h2 {
+    font-size: 24px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #303030;
+}
+
+.btn-group-vertical {
+    width: 100%;
+    max-width: 300px;
+}
+

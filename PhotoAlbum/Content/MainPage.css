@@ -1,0 +1,110 @@
+﻿/*Index page styles*/
+
+h4 {
+    font-size: 19px;
+    line-height: 1.375em;
+    color: #303030;
+    font-weight: 400;
+    margin-bottom: 30px;
+}
+
+.jumbotron {
+    background-color: mediumseagreen;
+    color: #fff;
+    padding: 75px 25px;
+    font-family: Montserrat, sans-serif;
+}
+
+.container-fluid {
+    padding: 18px 50px;
+}
+
+.bg-grey {
+    background-color: #f6f6f6;
+}
+
+.logo-small {
+    color: mediumseagreen;
+    font-size: 50px;
+}
+
+.logo {
+    color: mediumseagreen;
+    font-size: 200px;
+}
+
+.logo-medium {
+    color: mediumseagreen;
+    font-size: 100px;
+}
+
+.carousel-control.right, .carousel-control.left {
+    background-image: none;
+    color: mediumseagreen;
+}
+
+.carousel {
+    padding:30px;
+}
+
+.carousel-indicators li {
+    border-color: mediumseagreen;
+}
+
+    .carousel-indicators li.active {
+        background-color: mediumseagreen;
+    }
+
+.slideanim {
+    visibility: hidden;
+}
+
+.slide {
+    animation-name: slide;
+    -webkit-animation-name: slide;
+    animation-duration: 1s;
+    -webkit-animation-duration: 1s;
+    visibility: visible;
+}
+
+@keyframes slide {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateY(70%);
+    }
+
+    100% {
+        opacity: 1;
+        -webkit-transform: translateY(0%);
+    }
+}
+
+@-webkit-keyframes slide {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateY(70%);
+    }
+
+    100% {
+        opacity: 1;
+        -webkit-transform: translateY(0%);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .col-sm-4 {
+        text-align: center;
+        margin: 25px 0;
+    }
+
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 35px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .logo {
+        font-size: 150px;
+    }
+}

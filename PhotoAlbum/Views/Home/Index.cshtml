@@ -1,31 +1,87 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "PhotoAlbum - Main";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+<div class="jumbotron text-center">
+    <h1 class="app-name">PhotoAlbum</h1>
+    <p>The best place for your photos</p>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-8">
+            <h2>Cloud technologies</h2><br>
+            <h4>We store your photos in our trusty cloud storage. Forget about HDDs, CDs, memory cards and flash drives! We guarantee safety and integrity of our data.</h4><br>
+        </div>
+        <div class="col-sm-4 text-center">
+            <span class="glyphicon glyphicon-cloud logo slideanim"></span>
+        </div>
     </div>
 </div>
+
+<div class="container-fluid bg-grey">
+    <div class="row">
+        <div class="col-sm-4 text-center">
+            <span class="glyphicon glyphicon-globe logo slideanim"></span>
+        </div>
+        <div class="col-sm-8">
+            <h2>Accessibility</h2><br>
+            <h4>Access your data everywhere for free! This is our mission.</h4><br>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("_AboutPartial");
+
+<div id="portfolio" class="container-fluid text-center bg-grey">
+    <h2>What our users say</h2>
+    <div id="myCarousel" class="carousel slide text-center" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+            <div class="item active">
+                <h4>"Pretty awesome!"<br><span style="font-style:normal;">Michael Roe</span></h4>
+            </div>
+            <div class="item">
+                <h4>"Just... Amazing!"<br><span style="font-style:normal;">John Doe</span></h4>
+            </div>
+            <div class="item">
+                <h4>"Nice service!"<br><span style="font-style:normal;">Chandler Bing</span></h4>
+            </div>
+        </div>
+
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+</div>
+
+@Html.Partial("_ContactPartial");
+
+<div class="container-fluid text-center bg-grey">
+    <a href="#myPage" title="To Top">
+        <span class="glyphicon glyphicon-chevron-up logo-small"></span>
+    </a>
+</div>
+
+@section scripts
+{
+    <script src="@Url.Content("~/Scripts/scrollAnimation.js")"></script>
+}
+
+@section css
+{
+    <link href="@Url.Content("~/Content/MainPage.css")" rel="stylesheet" type="text/css">
+}

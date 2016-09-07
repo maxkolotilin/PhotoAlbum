@@ -11,6 +11,9 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using PhotoAlbum.Models;
+using System.Net.Mail;
+using System.Net;
+using System.Web.Configuration;
 
 namespace PhotoAlbum
 {
@@ -18,8 +21,27 @@ namespace PhotoAlbum
     {
         public Task SendAsync(IdentityMessage message)
         {
-            // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            var email = WebConfigurationManager.AppSettings["Email"];
+            var password = WebConfigurationManager.AppSettings["EmailPassword"];
+
+            var client = new SmtpClient()
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                EnableSsl = true,
+                Credentials = new NetworkCredential(
+                    email, password),
+            };
+            var mail = new MailMessage(email, message.Destination)
+            {
+                Subject = message.Subject,
+                Body = message.Body,
+                IsBodyHtml = true,
+            };
+
+            return client.SendMailAsync(mail);
         }
     }
 
@@ -54,10 +76,8 @@ namespace PhotoAlbum
             manager.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6,
-                RequireNonLetterOrDigit = true,
                 RequireDigit = true,
                 RequireLowercase = true,
-                RequireUppercase = true,
             };
 
             // Configure user lockout defaults

@@ -6,6 +6,10 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
 using PhotoAlbum.Models;
+using System.Web.Configuration;
+using Microsoft.Owin.Security.Twitter;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Facebook;
 
 namespace PhotoAlbum
 {
@@ -50,13 +54,38 @@ namespace PhotoAlbum
             //    clientId: "",
             //    clientSecret: "");
 
-            //app.UseTwitterAuthentication(
-            //   consumerKey: "",
-            //   consumerSecret: "");
-
             //app.UseFacebookAuthentication(
-            //   appId: "",
-            //   appSecret: "");
+            //  appId: WebConfigurationManager.AppSettings["FacebookApiKey"],
+            //  appSecret: WebConfigurationManager.AppSettings["FacebookApiSecret"]);
+
+            var facebookOptions = new FacebookAuthenticationOptions()
+            {
+                AppId = WebConfigurationManager.AppSettings["FacebookApiKey"],
+                AppSecret = WebConfigurationManager.AppSettings["FacebookApiSecret"],
+            };
+            facebookOptions.Scope.Add("email");
+            app.UseFacebookAuthentication(facebookOptions);
+
+            var twitterAuthOptions = new TwitterAuthenticationOptions
+            {
+                ConsumerKey = WebConfigurationManager.AppSettings["TwitterApiKey"],
+                ConsumerSecret = WebConfigurationManager.AppSettings["TwitterApiSecret"],
+                BackchannelCertificateValidator = new CertificateSubjectKeyIdentifierValidator(new[]
+                {
+                    "A5EF0B11CEC04103A34A659048B21CE0572D7D47",
+                    "0D445C165344C1827E1D20AB25F40163D8BE79A5",
+                    "7FD365A7C2DDECBBF03009F34339FA02AF333133",
+                    "39A55D933676616E73A761DFA16A7E59CDE66FAD",
+                    "5168FF90AF0207753CCCD9656462A212B859723B",
+                    "B13EC36903F8BF4701D498261A0802EF63642BC3"
+                })
+            };
+            app.UseTwitterAuthentication(twitterAuthOptions);
+
+            app.UseVkontakteAuthentication(
+                WebConfigurationManager.AppSettings["VkApiKey"],
+                WebConfigurationManager.AppSettings["VkApiSecret"], 
+                "email");
 
             //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
             //{
