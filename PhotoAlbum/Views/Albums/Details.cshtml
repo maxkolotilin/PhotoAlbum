@@ -1,0 +1,88 @@
+﻿@model PhotoAlbum.Models.AlbumViewModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <h2>Details</h2>
+
+            <div>
+                <h4>Album</h4>
+                <hr />
+                <dl class="dl-horizontal">
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Album.User.Email)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.Album.User.Email)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Album.AlbumName)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.Album.AlbumName)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Album.IsPrivate)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.Album.IsPrivate)
+                    </dd>
+
+                </dl>
+            </div>
+            <p>
+                @Html.ActionLink("Edit", "Edit", new { id = Model.Album.Id }) |
+                @Html.ActionLink("Back to List", "Index")
+            </p>
+
+            @{ int i = 0; }
+
+            @foreach (var photo in Model.Photos)
+            {
+                var url = $"/Photo/{ photo.Guid }";
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="img-container img-rounded">
+                            <img style="width:100%;" class="image_@i" id="image_@i" src="@url" data-toggle="modal" data-target="#modal_@i" />
+                        </div>
+                        @*<div style="margin-left:95px">
+                                <input class="checkbox" type="checkbox" name="checkbox_@i" />
+                            </div>*@
+                        <br />
+                    </div>
+
+                    @* <div id="modal_@i" class="modal fade text-center" role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Image</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><img class="image_@i" style="width:100%;max-width:1000px;" src="@url" /></p>
+                                        <p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('image_@i', '@url');" /></p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>*@
+                </div>
+                i++;
+            }
+
+            <hr />
+        </div>
+    </div>
+</div>

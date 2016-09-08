@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using System.Collections.Generic;
 
 namespace PhotoAlbum.Models
 {
@@ -16,6 +17,10 @@ namespace PhotoAlbum.Models
             // Add custom user claims here
             return userIdentity;
         }
+
+        public virtual List<Album> Albums { get; set; }
+        public virtual List<Comment> Comments { get; set; }
+        public virtual List<Rating> Ratings { get; set; } 
     }
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -29,5 +34,9 @@ namespace PhotoAlbum.Models
         {
             return new ApplicationDbContext();
         }
+
+        public DbSet<Album> Albums { get; set; }
+        public DbSet<Photo> Photos { get; set; }
+        public DbSet<Comment> Comments { get; set; }
     }
 }
