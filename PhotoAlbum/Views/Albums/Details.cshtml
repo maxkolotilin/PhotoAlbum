@@ -41,48 +41,125 @@
             </div>
             <p>
                 @Html.ActionLink("Edit", "Edit", new { id = Model.Album.Id }) |
-                @Html.ActionLink("Back to List", "Index")
+                @Html.ActionLink("Back to List", "Index") |
+                @Html.ActionLink("Slideshow", "Slideshow", new { albumId = Model.Album.Id })
             </p>
-
-            @{ int i = 0; }
-
-            @foreach (var photo in Model.Photos)
-            {
-                var url = $"/Photo/{ photo.Guid }";
-                <div class="row">
-                    <div class="col-md-6 col-md-offset-3">
-                        <div class="img-container img-rounded">
-                            <img style="width:100%;" class="image_@i" id="image_@i" src="@url" data-toggle="modal" data-target="#modal_@i" />
-                        </div>
-                        @*<div style="margin-left:95px">
-                                <input class="checkbox" type="checkbox" name="checkbox_@i" />
-                            </div>*@
-                        <br />
-                    </div>
-
-                    @* <div id="modal_@i" class="modal fade text-center" role="dialog">
-                            <div class="modal-dialog">
-                                <!-- Modal content-->
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                        <h4 class="modal-title">Image</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p><img class="image_@i" style="width:100%;max-width:1000px;" src="@url" /></p>
-                                        <p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('image_@i', '@url');" /></p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>*@
-                </div>
-                i++;
-            }
-
             <hr />
         </div>
     </div>
+
+    <fieldset class="rating">
+        <legend>Please rate:</legend>
+        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!"></label>
+        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good"></label>
+        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh"></label>
+        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad"></label>
+        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time"></label>
+    </fieldset>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <div class="star-rating">
+        <div class="star-rating__wrap">
+            <input class="star-rating__input" id="star-rating-5" type="radio" name="rating" value="5">
+            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-5" title="5 out of 5 stars"></label>
+            <input class="star-rating__input" id="star-rating-4" type="radio" name="rating" value="4">
+            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-4" title="4 out of 5 stars"></label>
+            <input class="star-rating__input" id="star-rating-3" type="radio" name="rating" value="3">
+            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-3" title="3 out of 5 stars"></label>
+            <input class="star-rating__input" id="star-rating-2" type="radio" name="rating" value="2">
+            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-2" title="2 out of 5 stars"></label>
+            <input class="star-rating__input" id="star-rating-1" type="radio" name="rating" value="1">
+            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-1" title="1 out of 5 stars"></label>
+        </div>
+    </div>
+
+    @{ int i = 0; }
+
+    @foreach (var photo in Model.Photos)
+    {
+        //var url = $"/Photo/{ photo.Guid }";
+        var url = String.Format("data:image;base64,{0}", Convert.ToBase64String(photo.Image));
+
+        if (i % 3 == 0)
+        {
+            WriteLiteral("<div class=\"row\">");
+        }
+
+        <div class="col-md-4">
+            <div class="img-container img-rounded text-center">
+                <img style="width: 100%;" class="@photo.Id" id="@photo.Id" src="@url" data-toggle="modal" data-target="#modal_@i" />
+            </div>
+            <br />
+        </div>
+
+                <div id="modal_@i" class="modal fade text-center" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Image</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p><img class="@photo.Id" style="width:100%;max-width:600px;" src="@url" /></p>
+                                <p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('@photo.Id', '@url');" /></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        if (i % 3 == 2)
+        {
+            WriteLiteral("</div>");
+        }
+        i++;
+
+    }
 </div>
+
+
+<!-- Load Feather code -->
+<script type="text/javascript" src="http://feather.aviary.com/imaging/v3/editor.js"></script>
+
+<!-- Instantiate Feather -->
+<script type='text/javascript'>
+var featherEditor = new Aviary.Feather({
+    apiKey: 'c24143d191244ced89942d443a94c7ce',
+	theme: 'dark', // Check out our new 'light' and 'dark' themes!
+	tools: 'all',
+	appendTo: '',
+	onSave: function(imageID, newURL) {
+	    var images = document.getElementsByClassName(imageID);
+	    for (var i = 0; i < images.length; ++i) {
+	        images[i].src = newURL;
+	    }
+	   
+	    $.ajax({
+	        url: "/Albums/ReplaceImage",
+	        dataType: 'html',
+	        data: { "aviaryUrl": newURL, "id": imageID },
+	        type: 'POST',
+	        success: function (data) {
+
+	        },
+	        error: function (data) {
+	            alert("Error while saving changes");
+	        }
+	    });
+	},
+	onError: function(errorObj) {
+		alert(errorObj.message);
+	}
+});
+function launchEditor(id, src) {
+	featherEditor.launch({
+		image: id,
+		url: src
+	});
+	return false;
+}
+</script>
+
+

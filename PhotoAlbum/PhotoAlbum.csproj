@@ -265,6 +265,7 @@
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\MainPage.css" />
     <Content Include="Content\PagedList.css" />
+    <Content Include="Content\responsiveslides.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
@@ -317,6 +318,7 @@
     <Content Include="Scripts\respond.matchmedia.addListener.js" />
     <Content Include="Scripts\respond.matchmedia.addListener.min.js" />
     <Content Include="Scripts\respond.min.js" />
+    <Content Include="Scripts\responsiveslides.min.js" />
     <Content Include="Scripts\scrollAnimation.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
@@ -360,6 +362,7 @@
     <Content Include="Views\Albums\Details.cshtml" />
     <Content Include="Views\Albums\Edit.cshtml" />
     <Content Include="Views\Albums\Index.cshtml" />
+    <Content Include="Views\Albums\Slideshow.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -16,6 +16,32 @@ namespace PhotoAlbum.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
+        public ActionResult Slideshow(int albumId)
+        {
+            var album = db.Albums.Include(a => a.Photos).Single(a => a.Id == albumId);
+
+            ViewBag.photoUrls = new List<String>();
+            foreach (var photo in album.Photos)
+            {
+                ViewBag.photoUrls.Add($"/Photo/{ photo.Guid }");
+            }
+            ViewBag.timeout = 2000;
+            ViewBag.transition = 400;
+
+            return View();
+        }
+
+        [HttpPost]
+        public void ReplaceImage(string aviaryUrl, int id)
+        {
+            var photo = db.Photos.Find(id);
+            using (var client = new WebClient())
+            {
+                photo.Image = client.DownloadData(new Uri(aviaryUrl));
+                db.SaveChanges();
+            }
+        }
+
         // GET: Albums
         [AllowAnonymous]
         public async Task<ActionResult> Index()
