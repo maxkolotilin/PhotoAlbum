@@ -46,8 +46,17 @@ namespace PhotoAlbum.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Index()
         {
-            var albums = db.Albums.Include(a => a.User);
-            return View(await albums.ToListAsync());
+            var albums = new List<AlbumIndexViewModel>();
+            foreach (var album in db.Albums.Include(a => a.User).ToArray())
+            {
+                albums.Add(new AlbumIndexViewModel
+                {
+                    Album = album,
+                    Rating = db.Ratings.Where(r => r.AlbumId == album.Id).Average(r => (double?)r.Rate)
+                });
+            }
+          
+            return View(albums);
         }
 
         // GET: Albums/Details/5
@@ -68,6 +77,7 @@ namespace PhotoAlbum.Controllers
                 Album = album,
                 Photos = album.Photos,
             };
+           
             return View(AlbumView);
         }
 

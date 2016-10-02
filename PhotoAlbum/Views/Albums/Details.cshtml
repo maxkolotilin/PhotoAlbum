@@ -1,4 +1,5 @@
 ﻿@model PhotoAlbum.Models.AlbumViewModel
+@using Microsoft.AspNet.Identity;
 
 @{
     ViewBag.Title = "Details";
@@ -48,30 +49,111 @@
         </div>
     </div>
 
-    <fieldset class="rating">
-        <legend>Please rate:</legend>
-        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!"></label>
-        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good"></label>
-        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh"></label>
-        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad"></label>
-        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time"></label>
-    </fieldset>
+    @*<fieldset class="rating">
+            <legend>Please rate:</legend>
+            <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!"></label>
+            <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good"></label>
+            <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh"></label>
+            <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad"></label>
+            <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time"></label>
+        </fieldset>
 
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <div class="star-rating">
-        <div class="star-rating__wrap">
-            <input class="star-rating__input" id="star-rating-5" type="radio" name="rating" value="5">
-            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-5" title="5 out of 5 stars"></label>
-            <input class="star-rating__input" id="star-rating-4" type="radio" name="rating" value="4">
-            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-4" title="4 out of 5 stars"></label>
-            <input class="star-rating__input" id="star-rating-3" type="radio" name="rating" value="3">
-            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-3" title="3 out of 5 stars"></label>
-            <input class="star-rating__input" id="star-rating-2" type="radio" name="rating" value="2">
-            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-2" title="2 out of 5 stars"></label>
-            <input class="star-rating__input" id="star-rating-1" type="radio" name="rating" value="1">
-            <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-1" title="1 out of 5 stars"></label>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        <div class="star-rating">
+            <div class="star-rating__wrap">
+                <input class="star-rating__input" id="star-rating-5" type="radio" name="rating" value="5">
+                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-5" title="5 out of 5 stars"></label>
+                <input class="star-rating__input" id="star-rating-4" type="radio" name="rating" value="4">
+                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-4" title="4 out of 5 stars"></label>
+                <input class="star-rating__input" id="star-rating-3" type="radio" name="rating" value="3">
+                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-3" title="3 out of 5 stars"></label>
+                <input class="star-rating__input" id="star-rating-2" type="radio" name="rating" value="2">
+                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-2" title="2 out of 5 stars"></label>
+                <input class="star-rating__input" id="star-rating-1" type="radio" name="rating" value="1">
+                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-1" title="1 out of 5 stars"></label>
+            </div>
+        </div>*@
+
+    <!-- Lets add some rating boxes -->
+    @section scripts
+{
+        <script src="@Url.Content("~/Scripts/raterater.jquery.js")"></script>
+        <script>
+            var voteFlag = false;
+            var model;
+
+            function rateController(id, rating) {
+                alert('Rating for ' + id + ' is ' + rating + ' stars!');
+                if (!voteFlag) {
+                    $.post({
+                        url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
+                        data: { "Rate": rating,
+                            "AlbumId": @Model.Album.Id,
+                            "ApplicationUserId": "@User.Identity.GetUserId()" },
+                        success: function (data) {
+                            voteFlag = true;
+                            model = data
+                            delete model.User;
+                            delete model.Album;
+                        },
+                    });
+                } else {
+                    model.Rate = rating;
+                    $.ajax({
+                        type: 'PUT',
+                        url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
+                        data: model,
+                        success: function (data) {
+
+                        },
+                    });
+                }
+            }
+            /* Here we initialize raterater on our rating boxes
+             */
+            $(function () {
+                $.get({
+                    url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
+                    data: { "albumId": @Model.Album.Id,
+                        "userId": "@User.Identity.GetUserId()" },
+                    success: function (data) {
+                        if (data.Id != 0) {
+                            voteFlag = true;
+                            model = data;
+                            delete model.User;
+                            delete model.Album;
+                        }
+                        $("div.ratebox").attr("data-rating", data.Rate);
+                        $('.ratebox').raterater({
+                            submitFunction: 'rateController',
+                            allowChange: true,
+                            starWidth: 30,
+                            spaceWidth: 5,
+                            numStars: 5,
+                            step: 0.5
+                        });
+                    },
+                });
+            });
+        </script>
+    }
+
+    @section css
+{
+        <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
+    }
+    <div class="row">
+        <div class="ratebox" data-id="1" data-rating="2">
+            <div class="raterater-bg-layer">
+                <i class="fa fa-star" style="left: 0px; font-size: 32px;"></i>
+                <i class="fa fa-star" style="left: 35px; font-size: 32px;"></i>
+                <i class="fa fa-star" style="left: 70px; font-size: 32px;"></i>
+                <i class="fa fa-star" style="left: 105px; font-size: 32px;"></i>
+                <i class="fa fa-star" style="left: 140px; font-size: 32px;"></i>
+            </div>
         </div>
     </div>
+
 
     @{ int i = 0; }
 
@@ -87,29 +169,29 @@
 
         <div class="col-md-4">
             <div class="img-container img-rounded text-center">
-                <img style="width: 100%;" class="@photo.Id" id="@photo.Id" src="@url" data-toggle="modal" data-target="#modal_@i" />
+                @*<img style="width: 100%;" class="@photo.Id" id="@photo.Id" src="@url" data-toggle="modal" data-target="#modal_@i" />*@
             </div>
             <br />
         </div>
 
-                <div id="modal_@i" class="modal fade text-center" role="dialog">
-                    <div class="modal-dialog">
-                        <!-- Modal content-->
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title">Image</h4>
-                            </div>
-                            <div class="modal-body">
-                                <p><img class="@photo.Id" style="width:100%;max-width:600px;" src="@url" /></p>
-                                <p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('@photo.Id', '@url');" /></p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
+        <div id="modal_@i" class="modal fade text-center" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Image</h4>
+                    </div>
+                    <div class="modal-body">
+                        @*<p><img class="@photo.Id" style="width:100%;max-width:600px;" src="@url" /></p>*@
+                        @*<p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('@photo.Id', '@url');" /></p>*@
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     </div>
                 </div>
+            </div>
+        </div>
         if (i % 3 == 2)
         {
             WriteLiteral("</div>");
@@ -125,41 +207,39 @@
 
 <!-- Instantiate Feather -->
 <script type='text/javascript'>
-var featherEditor = new Aviary.Feather({
-    apiKey: 'c24143d191244ced89942d443a94c7ce',
-	theme: 'dark', // Check out our new 'light' and 'dark' themes!
-	tools: 'all',
-	appendTo: '',
-	onSave: function(imageID, newURL) {
-	    var images = document.getElementsByClassName(imageID);
-	    for (var i = 0; i < images.length; ++i) {
-	        images[i].src = newURL;
-	    }
-	   
-	    $.ajax({
-	        url: "/Albums/ReplaceImage",
-	        dataType: 'html',
-	        data: { "aviaryUrl": newURL, "id": imageID },
-	        type: 'POST',
-	        success: function (data) {
+    var featherEditor = new Aviary.Feather({
+        apiKey: 'c24143d191244ced89942d443a94c7ce',
+        theme: 'dark', // Check out our new 'light' and 'dark' themes!
+        tools: 'all',
+        appendTo: '',
+        onSave: function (imageID, newURL) {
+            var images = document.getElementsByClassName(imageID);
+            for (var i = 0; i < images.length; ++i) {
+                images[i].src = newURL;
+            }
 
-	        },
-	        error: function (data) {
-	            alert("Error while saving changes");
-	        }
-	    });
-	},
-	onError: function(errorObj) {
-		alert(errorObj.message);
-	}
-});
-function launchEditor(id, src) {
-	featherEditor.launch({
-		image: id,
-		url: src
-	});
-	return false;
-}
+            $.ajax({
+                url: "/Albums/ReplaceImage",
+                dataType: 'html',
+                data: { "aviaryUrl": newURL, "id": imageID },
+                type: 'POST',
+                success: function (data) {
+
+                },
+                error: function (data) {
+                    alert("Error while saving changes");
+                }
+            });
+        },
+        onError: function (errorObj) {
+            alert(errorObj.message);
+        }
+    });
+    function launchEditor(id, src) {
+        featherEditor.launch({
+            image: id,
+            url: src
+        });
+        return false;
+    }
 </script>
-
-

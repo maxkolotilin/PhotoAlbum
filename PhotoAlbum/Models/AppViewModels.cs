@@ -10,4 +10,10 @@ namespace PhotoAlbum.Models
         public Album Album { get; set; }
         public IEnumerable<Photo> Photos { get; set; }
     }
+
+    public class AlbumIndexViewModel
+    {
+        public Album Album { get; set; }
+        public double? Rating { get; set; }
+    }
 }

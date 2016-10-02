@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PhotoAlbum.Models.Album>
+﻿@model IEnumerable<PhotoAlbum.Models.AlbumIndexViewModel>
 
 @{
     ViewBag.Title = "Index";
@@ -14,13 +14,16 @@
             <table class="table">
                 <tr>
                     <th>
-                        @Html.DisplayNameFor(model => model.User.Email)
+                        @Html.DisplayNameFor(model => model.Album.User.Email)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.AlbumName)
+                        @Html.DisplayNameFor(model => model.Album.AlbumName)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.IsPrivate)
+                        @Html.DisplayNameFor(model => model.Album.IsPrivate)
+                    </th>
+                    <th>
+                        Total rating
                     </th>
                     <th></th>
                 </tr>
@@ -29,18 +32,34 @@
                 {
                     <tr>
                         <td>
-                            @Html.DisplayFor(modelItem => item.User.Email)
+                            @Html.DisplayFor(modelItem => item.Album.User.Email)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.AlbumName)
+                            @Html.DisplayFor(modelItem => item.Album.AlbumName)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.IsPrivate)
+                            @Html.DisplayFor(modelItem => item.Album.IsPrivate)
                         </td>
+                        @if (item.Rating.HasValue)
+                        {
+                            <td>
+                                @string.Format(System.Globalization.CultureInfo.CreateSpecificCulture("en-US") ,"{0:0.00} ", item.Rating)
+                                <div class="row">
+                                    <div class="ratebox" data-id="@item.Album.Id" data-rating=@string.Format(System.Globalization.CultureInfo.CreateSpecificCulture("en-US") ,"{0:0.00} ", item.Rating)>
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Rating)
+                            </td>
+                        }
                         <td>
-                            @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                            @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-                            @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                            @Html.ActionLink("Edit", "Edit", new { id = item.Album.Id }) |
+                            @Html.ActionLink("Details", "Details", new { id = item.Album.Id }) |
+                            @Html.ActionLink("Delete", "Delete", new { id = item.Album.Id })
                         </td>
                     </tr>
                 }
@@ -49,3 +68,27 @@
         </div>
     </div>
 </div>
+
+@section scripts
+{
+    <script src="@Url.Content("~/Scripts/raterater.jquery.js")"></script>
+    <script>
+        /* Here we initialize raterater on our rating boxes
+         */
+        $(function () {
+            $('.ratebox').raterater({
+                submitFunction: '',
+                isStatic: true,
+                starWidth: 15,
+                spaceWidth: 2,
+                numStars: 5,
+                step: 0.01
+            });
+        });
+    </script>
+}
+
+@section css
+{
+    <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
+}
