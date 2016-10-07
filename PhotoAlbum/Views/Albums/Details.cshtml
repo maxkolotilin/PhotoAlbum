@@ -44,6 +44,8 @@
                 @Html.ActionLink("Edit", "Edit", new { id = Model.Album.Id }) |
                 @Html.ActionLink("Back to List", "Index") |
                 @Html.ActionLink("Slideshow", "Slideshow", new { albumId = Model.Album.Id })
+                @Html.ActionLink("Slideshow", "GetComments", new { albumId = Model.Album.Id, chunkIndex = 0, chunkSize = 10 })
+
             </p>
             <hr />
         </div>
@@ -84,21 +86,17 @@
 
             function rateController(id, rating) {
                 alert('Rating for ' + id + ' is ' + rating + ' stars!');
+                model.rate = rating;
                 if (!voteFlag) {
                     $.post({
                         url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
-                        data: { "Rate": rating,
-                            "AlbumId": @Model.Album.Id,
-                            "ApplicationUserId": "@User.Identity.GetUserId()" },
+                        data: model,
                         success: function (data) {
                             voteFlag = true;
                             model = data
-                            delete model.User;
-                            delete model.Album;
                         },
                     });
                 } else {
-                    model.Rate = rating;
                     $.ajax({
                         type: 'PUT',
                         url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
@@ -117,13 +115,14 @@
                     data: { "albumId": @Model.Album.Id,
                         "userId": "@User.Identity.GetUserId()" },
                     success: function (data) {
-                        if (data.Id != 0) {
+                        if (data.id != 0) {
                             voteFlag = true;
-                            model = data;
-                            delete model.User;
-                            delete model.Album;
+                        } else {
+                            data.albumId = @Model.Album.Id;
+                            data.applicationUserId = "@User.Identity.GetUserId()";
                         }
-                        $("div.ratebox").attr("data-rating", data.Rate);
+                        model = data;
+                        $("div.ratebox").attr("data-rating", data.rate);
                         $('.ratebox').raterater({
                             submitFunction: 'rateController',
                             allowChange: true,
@@ -136,11 +135,22 @@
                 });
             });
         </script>
+
+    <script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+        <script src="~/Scripts/summernote.js"></script>
+
+        <script src="~/Scripts/moment.js"></script>
+        <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+        <script src="~/signalr/hubs"></script>
+        <script src="~/Scripts/knockout-3.4.0.js"></script>
+        <script src="~/Scripts/board.js"></script>
     }
 
     @section css
 {
         <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/Content/summernote.css")" rel="stylesheet" type="text/css">
+    
     }
     <div class="row">
         <div class="ratebox" data-id="1" data-rating="2">
@@ -159,35 +169,37 @@
 
     @foreach (var photo in Model.Photos)
     {
-        //var url = $"/Photo/{ photo.Guid }";
-        var url = String.Format("data:image;base64,{0}", Convert.ToBase64String(photo.Image));
+        var url = $"/Photo/{ photo.Guid }";
+        var urlForAviary = String.Format("data:image;base64,{0}", Convert.ToBase64String(photo.Image));
 
         if (i % 3 == 0)
         {
             WriteLiteral("<div class=\"row\">");
         }
-
-        <div class="col-md-4">
-            <div class="img-container img-rounded text-center">
-                @*<img style="width: 100%;" class="@photo.Id" id="@photo.Id" src="@url" data-toggle="modal" data-target="#modal_@i" />*@
+        <div class="@photo.Id">
+            <div class="col-md-4">
+                <div class="img-container img-rounded text-center">
+                    <img style="width: 100%;" class="@photo.Id" id="@photo.Id" src="@url" data-toggle="modal" data-target="#modal_@i" />
+                </div>
+                <br />
             </div>
-            <br />
-        </div>
 
-        <div id="modal_@i" class="modal fade text-center" role="dialog">
-            <div class="modal-dialog">
-                <!-- Modal content-->
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Image</h4>
-                    </div>
-                    <div class="modal-body">
-                        @*<p><img class="@photo.Id" style="width:100%;max-width:600px;" src="@url" /></p>*@
-                        @*<p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('@photo.Id', '@url');" /></p>*@
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <div id="modal_@i" class="modal fade text-center" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Image</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p><img class="@photo.Id" style="width:100%;max-width:600px;" src="@url" /></p>
+                            <p><input type='image' id="imgInput" src='http://images.aviary.com/images/edit-photo.png' value='Edit photo' onclick="return launchEditor('@photo.Id', '@urlForAviary');" /></p>
+                            <input type="submit" value="Delete" onclick="deletePhoto(@photo.Id);" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,12 +213,141 @@
     }
 </div>
 
+@*comments*@
+@*<div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <form class="pad-bottom" data-bind="visible: !signedIn(), submit: signIn">
+                    <div class="form-group">
+                        <label for="username">Sign In</label>
+                        <input class="form-control" type="text" name="username" id="username" placeholder="Enter your userame" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                    <br />
+                </form>
+
+                <div data-bind="visible: signedIn">
+                    <p>You are signed in as <strong data-bind="text: username"></strong></p>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div data-bind="visible: notifications().length > 0, foreach: notifications">
+                    <div class="summary alert alert-success alert-dismissable">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <p data-bind="text: $data"></p>
+                    </div>
+                </div>
+
+                <div class="new-post pad-bottom" data-bind="visible: signedIn">
+                    <form data-bind="submit: writePost">
+                        <div class="form-group">
+                            <label for="message">Write a new post:</label>
+                            <textarea class="form-control" name="message" id="message" placeholder="New post"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+
+                <ul class="posts list-unstyled" data-bind="foreach: posts">
+                    <li>
+                        <p>
+                            <span data-bind="text: username" class="username"></span><br />
+                        </p>
+                        <p>
+                            <span data-bind="text: message"></span>
+                        </p>
+
+                        <p class="no-pad-bottom date-posted">Posted <span data-bind="text: moment(date).calendar()" /></p>
+
+                        <div class="comments" data-bind="visible: $parent.signedIn() || comments().length > 0">
+                            <ul class="list-unstyled" data-bind="foreach: comments, visible: comments().length > 0">
+                                <li>
+
+                                    <p>
+                                        <span class="commentor" data-bind="text: username"></span>
+                                        <span data-bind="text: message"></span>
+                                    </p>
+                                    <p class="no-pad-bottom date-posted">Posted <span data-bind="text: moment(date).calendar()" /></p>
+                                </li>
+                            </ul>
+
+                            <form class="add-comment" data-bind="visible: $parent.signedIn, submit: addComment">
+                                <div class="row">
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control" name="comment" placeholder="Add a comment" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button class="btn btn-default" type="submit">Add Comment</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        </div>
+    </div>*@
+
+@*@section scripts {
+        <script src="~/Scripts/moment.js"></script>
+        <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+        <script src="~/signalr/hubs"></script>
+        <script src="~/Scripts/knockout-3.4.0.js"></script>
+        <script src="~/Scripts/board.js"></script>
+    }*@
+
+<div>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <h4>Comment album:</h4>
+            <div style="margin-bottom: 25px;">
+                <div id="write-comment"></div>
+                @*<div class="text-right">
+                        <button id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button>
+                    </div>*@
+                @using (Ajax.BeginForm("WriteComment", "Albums", new AjaxOptions
+                { OnSuccess = "WriteCommentOnSuccess" }))
+                {
+                    <input type="hidden" name="albumId" id="album_id" value="@Model.Album.Id" />
+                    <input type="hidden" name="commentHtml" id="comment_html" value="" />
+                            <button type="submit" id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button>
+                }
+            </div>
+    }
+
+    <div id="comments">
+        @{ Html.RenderPartial("_CommentsPartial", new List<PhotoAlbum.Models.CommentView>()); }
+    </div>
+    <div id="progress" style="display: none">
+        <h4>Loading...</h4>
+    </div>
+
+    <input type="hidden" id="last_comment_id" />
+</div>
+
 
 <!-- Load Feather code -->
 <script type="text/javascript" src="http://feather.aviary.com/imaging/v3/editor.js"></script>
 
 <!-- Instantiate Feather -->
 <script type='text/javascript'>
+    function deletePhoto(id) {
+        $.ajax({
+            url: "/Photo/DeletePhoto",
+            dataType: 'html',
+            data: { "photoId": id },
+            type: 'DELETE',
+            success: function (data) {
+                $(".close").trigger("click");
+                setTimeout(() => { $("div." + id).remove() }, 250);
+            },
+            error: function (data) {
+                alert("Error while saving changes");
+            }
+        });
+    }
+
     var featherEditor = new Aviary.Feather({
         apiKey: 'c24143d191244ced89942d443a94c7ce',
         theme: 'dark', // Check out our new 'light' and 'dark' themes!

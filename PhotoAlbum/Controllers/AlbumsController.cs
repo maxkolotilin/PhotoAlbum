@@ -8,6 +8,10 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using PhotoAlbum.Models;
+using System.Net.Http;
+using PhotoAlbum.DAL;
+using Microsoft.AspNet.Identity;
+using PhotoAlbum.Filters;
 
 namespace PhotoAlbum.Controllers
 {
@@ -15,6 +19,50 @@ namespace PhotoAlbum.Controllers
     public class AlbumsController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
+        private CommentsCRUD commentsRepo = new CommentsCRUD();
+
+        [HttpGet]
+        public ActionResult GetComments(int albumId, int chunkIndex, int chunkSize)
+        {
+            return PartialView("_CommentsPartial",
+                commentsRepo.GetCommentsChunk(albumId, chunkIndex, chunkSize));
+        }
+
+        [HttpDelete]
+        [Authorize]
+        public void DeleteComment(int id)
+        {
+            commentsRepo.DeleteComment(id);
+            commentsRepo.SaveChanges();
+        }
+
+        [HttpPost]
+        [ValidateInput(false)]
+        public ActionResult WriteComment(string commentHtml, int albumId)
+        {
+            var comment = commentsRepo.CreateComment(commentHtml, albumId, User.Identity.GetUserId());
+            commentsRepo.SaveChanges();
+
+            return PartialView("_CommentsPartial", new List<CommentView>
+            {
+                new CommentView
+                {
+                    CommentId = comment.Id,
+                    Comment = comment.CommentText,
+                    DateTime = comment.DateTime,
+                    UserName = User.Identity.GetUserName()
+                }
+            });
+        }
+
+        [HttpGet]
+        public ActionResult GetComment(int commentId)
+        {
+            return PartialView("_CommentsPartial",
+                new List<CommentView> { commentsRepo.GetComment(commentId) });
+        }
+
+
 
         public ActionResult Slideshow(int albumId)
         {
@@ -55,12 +103,13 @@ namespace PhotoAlbum.Controllers
                     Rating = db.Ratings.Where(r => r.AlbumId == album.Id).Average(r => (double?)r.Rate)
                 });
             }
-          
+
             return View(albums);
         }
 
         // GET: Albums/Details/5
         [AllowAnonymous]
+        [Mobile]
         public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
@@ -77,8 +126,24 @@ namespace PhotoAlbum.Controllers
                 Album = album,
                 Photos = album.Photos,
             };
-           
+
             return View(AlbumView);
+        }
+
+        [AllowAnonymous]
+        public async Task<ActionResult> Mobile(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Album album = await db.Albums.FindAsync(id);
+            if (album == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(album);
         }
 
         // GET: Albums/Create
@@ -170,6 +235,7 @@ namespace PhotoAlbum.Controllers
             if (disposing)
             {
                 db.Dispose();
+                commentsRepo.Dispose();
             }
             base.Dispose(disposing);
         }

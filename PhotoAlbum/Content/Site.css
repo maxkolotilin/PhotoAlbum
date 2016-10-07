@@ -231,6 +231,69 @@ fieldset intput {
 
 
 
+/*comments*/
+.pad-bottom {
+    margin-bottom: 10px;
+}
+ 
+.no-pad-bottom {
+    margin-bottom: 0;
+}
+ 
+.new-post {
+    background-color: #c9e0fc;
+    padding: 15px 10px;
+}
+ 
+.username {
+    font-weight: bold;
+    color: #ff6a00;
+}
+ 
+.commentor {
+    font-weight: bold;
+    color: #004bff;
+}
+ 
+.posts li .date-posted {
+    font-size: 12px;
+    font-style: italic;
+}
+ 
+.posts li {
+    border-bottom: 1px solid #CCC;
+    padding: 15px 0;
+}
+ 
+.posts li:first-child {
+    border-top: 1px solid #CCC;
+}
+ 
+.posts .comments {
+    background-color: #efefef;
+    margin-top: 10px;
+    padding: 10px;
+    padding-left: 30px;
+}
+ 
+.posts .comments li {
+    padding-top: 10px;
+    border: 0;
+}
+ 
+form.add-comment  {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 
 
 
+
+.heading-colors {
+    color: white !important;
+    background-color: mediumseagreen !important;
+}
+
+.glyph-color {
+    color: #e3f5e3;
+}

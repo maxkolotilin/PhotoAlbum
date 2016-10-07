@@ -16,4 +16,18 @@ namespace PhotoAlbum.Models
         public Album Album { get; set; }
         public double? Rating { get; set; }
     }
+
+    public class CommentView
+    {
+        public int CommentId { get; set; }
+        public string Comment { get; set; }
+        public DateTime DateTime { get; set; }
+        public string UserName { get; set; }
+    }
+
+    public class CommentPostData
+    {
+        public string Comment { get; set; }
+        public int Id { get; set; }
+    }
 }

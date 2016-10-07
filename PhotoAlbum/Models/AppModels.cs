@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -55,9 +56,11 @@ namespace PhotoAlbum.Models
         public DateTime DateTime { get; set; }
 
         public int AlbumId { get; set; }
+        [JsonIgnore]
         public virtual Album Album { get; set; }
 
         public string ApplicationUserId { get; set; }
+        [JsonIgnore]
         public virtual ApplicationUser User { get; set; }
 
         public Comment()
@@ -73,9 +76,11 @@ namespace PhotoAlbum.Models
         public double Rate { get; set; }
 
         public string ApplicationUserId { get; set; }
+        [JsonIgnore]
         public ApplicationUser User { get; set; }
 
         public int AlbumId { get; set; }
+        [JsonIgnore]
         public Album Album { get; set; }
     }
 }

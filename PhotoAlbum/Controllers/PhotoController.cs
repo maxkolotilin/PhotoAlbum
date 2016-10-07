@@ -14,6 +14,20 @@ namespace PhotoAlbum.Controllers
     public class PhotoController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
+
+        [HttpDelete]
+        public ActionResult DeletePhoto(int photoId)
+        {
+            var photo = db.Photos.Find(photoId);
+            if (photo == null)
+            {
+                return Json(new { Message = "Fail" });
+            }
+            db.Photos.Remove(photo);
+            db.SaveChanges();
+
+            return Json(new { Message = "Success" });
+        }
         
         [HttpPost]
         public ActionResult SaveUploaded(int albumId)

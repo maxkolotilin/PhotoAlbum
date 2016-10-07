@@ -1,0 +1,106 @@
+﻿@model PhotoAlbum.Models.Album
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Mobile";
+}
+
+<div class="container">
+    <h3>Mobile version of <span style="color: mediumseagreen;">@Model.AlbumName</span></h3>
+    <h4>Created by <span style="color: mediumseagreen;">@Model.User.UserName</span></h4>
+
+    <div id="photo_container"></div>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <hr />
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                <h4>Rate album:</h4>
+                <div style="margin: auto;" class="ratebox" data-id="ratebox_1"></div>
+            </div>
+        </div>
+        <hr />
+    }
+
+    <div>
+        @if (User.Identity.IsAuthenticated)
+        {
+            @*<h4>Comment album:</h4>*@
+            <div style="margin-bottom: 25px;">
+                <div id="write-comment"></div>
+                <input type="hidden" name="albumId" id="album_id" value="@Model.Id" />
+                <input type="hidden" name="commentHtml" id="comment_html" value="" />
+                <div class="text-center"><button type="submit" id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button></div>
+            </div>
+        }
+
+        <div id="comments_" data-bind="foreach: myObservableArray">
+            <div class="comment-block" data-bind="attr: {id: 'comment_' + commentId }">
+                <div class="panel panel-default">
+                    <div class="panel-heading heading-colors">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <span class="glyphicon glyphicon-user glyph-color"></span>
+                                <span data-bind="text: userName"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-right">
+                                    <span data-bind="text: moment(dateTime).calendar()"></span>
+                                    <span data-bind="if: userName == '@User.Identity.GetUserName()'">
+                                        <button  data-bind="click: deleteButton" style="margin-left: 10px;" type="button" class="delete-comment close" title="Remove this comment"><span style="color: red !important;" class="glyphicon glyphicon-remove"></span></button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body" data-bind="html: comment"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="progress" style="display: none">
+            <h4>Loading...</h4>
+        </div>
+
+        <input type="hidden" id="last_comment_id" />
+    </div>
+</div>
+
+@section scripts
+{
+    <script src="~/Scripts/knockout-3.4.0.js"></script>
+    <script>
+        var albumId = @Model.Id;
+        var userId = "@User.Identity.GetUserId()";
+        var userName = "@User.Identity.GetUserName()";
+
+        $.get({
+            url: '@Url.HttpRouteUrl("DefaultApi", new { controller = "Photos" })',
+            data: { "albumId": @Model.Id },
+            success: function (data) {
+                for (var i = 0; i < data.length; ++i) {
+                    $("#photo_container").append(
+                        '<div class="row"><div class="col-xs-12"><image style="width: 95%; margin: 10px;" src="' + data[i] + '"/></div></div>'
+                    )
+                }
+            }
+        });
+    </script>
+
+    <script src="@Url.Content("~/Scripts/raterater.jquery.js")"></script>
+    <script src="~/Scripts/summernote.js"></script>
+    <script src="~/Scripts/bootstrap-notify.min.js"></script>
+
+    <script src="~/Scripts/moment.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+
+    <script src="~/Scripts/mobile.js"></script>
+}
+
+@section css
+{
+    <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/Content/summernote.css")" rel="stylesheet" type="text/css">
+<link href="@Url.Content("~/Content/animate.css")" rel="stylesheet" type="text/css">
+}
