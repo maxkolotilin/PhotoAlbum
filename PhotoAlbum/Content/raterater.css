@@ -1,15 +1,15 @@
 /* change these if you want */
 .raterater-bg-layer {
-    color: rgba( 0, 0, 0, 0.25 );
+    color: rgba( 0, 0, 0, 0 );
 }
 .raterater-hover-layer {
-    color: rgba( 255, 255, 0, 0.75 );
+    color: rgba( 255, 255, 0, 0.6 );
 }
 .raterater-hover-layer.rated { /* after the user selects a rating */
     color: rgba( 255, 255, 0, 1 );
 }
 .raterater-rating-layer {
-    color: rgba( 255, 155, 0, 0.75 );
+    color: rgba(255, 200, 0, 1);
 }
 .raterater-outline-layer {
     color: rgba( 0, 0, 0, 0.25 );

@@ -17,12 +17,6 @@ namespace PhotoAlbum.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        //// GET: api/Ratings
-        //public IQueryable<Rating> GetRatings()
-        //{
-        //    return db.Ratings;
-        //}
-
         // GET: api/Ratings/5
         [ResponseType(typeof(Rating))]
         public async Task<IHttpActionResult> GetRating(int albumId, string userId)

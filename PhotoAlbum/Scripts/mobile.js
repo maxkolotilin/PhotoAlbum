@@ -1,76 +1,50 @@
-﻿function errorHandler(e) {
-    alert(e.status + " - " + e.statusText);
-    console.log(e.responseText);
-}
+﻿
 
-var voteFlag = false;
 var rateModel;
 
-function rateController(id, rating) {
-    rateModel.rate = rating;
-    if (!voteFlag) {
-        $.post({
-            url: "/api/Ratings",
-            data: rateModel,
-            success: function (data) {
-                voteFlag = true;
-                rateModel = data
-                $.notify({
-                    delay: 3000,
-                    icon: 'fa fa-star',
-                    title: '<strong> ' + rateModel.rate + ' stars!</strong>',
-                    message: 'Your rating was accepted.'
-                }, {
-                    offset: { x: 10, y: 60 },
-                    animate: {
-                        enter: 'animated fadeInLeftBig',
-                        exit: 'animated fadeOutDownBig'
-                    },
-                });
-            },
-            error: errorHandler
-        });
+function RateModel(rating) {
+    if (rating.id != 0) {
+        this.method = 'PUT';
+        this.notifyMessage = 'Your rating was updated';
     } else {
-        $.ajax({
-            type: 'PUT',
-            url: "/api/Ratings",
-            data: rateModel,
-            success: function () {
-                $.notify({
-                    delay: 3000,
-                    icon: 'fa fa-star',
-                    title: '<strong> ' + rateModel.rate + ' stars!</strong>',
-                    message: 'Your rating was updated.'
-                }, {
-                    offset: { x: 10, y: 60 },
-                    animate: {
-                        enter: 'animated fadeInLeftBig',
-                        exit: 'animated fadeOutDownBig'
-                    },
-                });
-            },
-            error: errorHandler
-        });
+        this.method = 'POST';
+        this.notifyMessage = 'New rating was accepted';
+        rating.albumId = albumId;
+        rating.applicationUserId = userId;
     }
+    this.rating = rating;
+};
+
+function rateController(id, rating) {
+    rateModel.rating.rate = rating;
+    $.ajax({
+        type: rateModel.method,
+        url: '/api/Ratings',
+        data: rateModel.rating,
+        success: function (data) {
+            pushNotify('fa fa-star', '<strong> ' + rating + ' stars!</strong>',
+                rateModel.notifyMessage, 3000);
+            if (rateModel.method === 'POST') {
+                rateModel.method = 'PUT';
+                rateModel.notifyMessage = 'Your rating was updated';
+                rateModel.rating = data;
+            }
+        },
+        error: errorHandler
+    });
 }
 
 // init ratebox
 $(function () {
     $.get({
-        url: "/api/Ratings",
+        url: '/api/Ratings',
         data: {
-            "albumId": albumId,
-            "userId": userId
+            albumId: albumId,
+            userId: userId
         },
-        success: function (data) {
-            if (data.id != 0) {
-                voteFlag = true;
-            } else {
-                data.albumId = albumId;
-                data.applicationUserId = userId;
-            }
-            rateModel = data;
-            $("div.ratebox").attr("data-rating", data.rate);
+        success: function (rating) {
+            rateModel = new RateModel(rating);
+            $('div.ratebox').attr('data-rating', rating.rate);
 
             $('.ratebox').raterater({
                 submitFunction: 'rateController',
@@ -81,133 +55,98 @@ $(function () {
                 step: 0.5
             });
         },
+        complete: function () {
+            $('#rating_spinner').hide();
+            $('#rating_block').show();
+        },
+        error: errorHandler
     });
 });
 
 
 var commentsModel = {
     myObservableArray: ko.observableArray(),
-    removeButton: function (sender) {
-        alert(sender.target.id);
-    }
+    isCommentsLoaded: ko.observable(false),
+    removeButton: function (comment) {
+        $.ajax({
+            method: 'DELETE',
+            url: '/api/Comments/' + comment.commentId,
+            success: function () {
+                commentsModel.myObservableArray.remove(comment);
+                commentsHub.server.deleteComment(comment.commentId);;
+            },
+            error: errorHandler
+        });
+    },
+    sendButton: function () {
+        var commentHtml = $('#write-comment').summernote('code');
+        $('#write-comment').summernote('code', '');
+        if (commentHtml) {
+            $.ajax({
+                type: 'POST',
+                url: '/api/Comments',
+                data: {
+                    comment: commentHtml,
+                    id: albumId
+                },
+                success: function (comment) {
+                    commentsModel.myObservableArray.unshift(comment);
+                    commentsHub.server.addComment(comment.commentId);
+                },
+                error: errorHandler
+            });
+        }
+    },
+    fadeIn: function (element) {
+        $(element).addClass('fadeInLeft');
+        $(element).css('animation-duration', '.6s');
+    },
+    fadeOut: function (element) {
+        $(element).addClass('fadeOutRight');
+        $(element).css('animation-duration', '.6s');
+        $('body').css('overflow', 'hidden');
+        
+        setTimeout(() => { $(element).remove(); $('body').css('overflow', ''); }, 600);
+    },
 }
-ko.applyBindings(commentsModel);
+ko.applyBindings(commentsModel, document.getElementById('comments_block'));
 
 var commentsHub = $.connection.commentsHub;
-var pageSize = 5;
-var pageIndex = 0;
+
 $(function () {
-
-
-    $.connection.hub.start().done(function () {
-        //GetComments(); // Load posts when connected to hub
+    $.ajax({
+        type: 'GET',
+        url: '/api/Comments',
+        data: { albumId: albumId, mark: 0 },
+        dataType: 'json',
+        success: function (comments) {
+            $('#comments').show();
+            ko.utils.arrayPushAll(commentsModel.myObservableArray, comments);
+        },
+        complete: function () {
+            commentsModel.isCommentsLoaded(true);
+        },
+        error: errorHandler
     });
-
-
-    $('#send-comment').click(function () {
-        var commentHtml = $('#write-comment').summernote('code');
-        $('#comment_html').val(commentHtml);
-        //var obj = {
-        //    commentHtml: commentHtml,
-        //    albumId: Number(albumId)
-        //};
-        var obj = {
-            "comment": commentHtml,
-            "id": albumId
-        };
-        $.ajax({
-            type: 'POST',
-            url: '/api/Comments',
-            data: obj,
-            //data: { data: 'qwerty' },
-            success: function (data) {
-                $('#comments').prepend(insertCommentInMarkup(data));
-                updateCommentsDeleteButton();
-                commentsHub.server.addComment($('.delete-comment.close').first().attr('id'));
-            },
-            error: function (e, a, b) {
-                alert(e.status);
-                alert(e.statusText);
-                alert(e.responseText);
-                console.log(e.responseText);
-            }
-        });
-    });
-
-    GetComments();
-
-    //$(window).scroll(function () {
-    //    if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight - 1) {
-    //        GetComments();
-    //    }
-    //});
-
-    //function insertCommentInMarkup(comment) {
-    //    var str = '<div class="comment-block" id="comment_' + comment.commentId + '">\
-    //       <div class="well well-lg">\
-    //           <div class="row">\
-    //               <div class="col-md-6">\
-    //                   <span class="glyphicon glyphicon-user"></span>' + comment.userName + '\
-    //               </div>\
-    //               <div class="col-md-6">\
-    //                   <div class="text-right">\
-    //                       ' + comment.dateTime;
-    //    if (userName == comment.userName) {
-    //        str += '<button id="' + comment.commentId + '" style="margin-left: 10px" type="button" class="delete-comment close">&times;</button>'
-    //    }
-    //    str += '\
-    //                   </div>\
-    //               </div>\
-    //           </div>\
-    //           <div class="">\
-    //               ' + comment.comment + '\
-    //           </div></div></div>';
-    //    return str;
-    //}
-
-    function GetComments() {
-        $.ajax({
-            type: 'GET',
-            url: '/api/Comments',
-            data: { albumId: albumId, mark: 0 },
-            dataType: 'json',
-            success: function (data) {
-                if (data != null) {
-                    for (var i = 0; i < data.length; ++i) {
-                        //$('#comments').append(insertCommentInMarkup(data[i]));
-                        commentsModel.myObservableArray.push(data[i]);
-                    }
-
-                    //updateCommentsDeleteButton();
-                    pageIndex++;
-                }
-            },
-            beforeSend: function () {
-                $("#progress").show();
-            },
-            complete: function () {
-                $("#progress").hide();
-            },
-            error: function () {
-            }
-        });
-    }
-
-
 
     $('#write-comment').summernote({
-        placeholder: "Write your comment here ...",
+        minHeight: 100,
+        placeholder: 'Write your comment here ...',
         toolbar: [
             ['style', ['bold', 'italic', 'underline', 'clear']],
             ['color', ['color']],
-            ['picture', ['link', 'picture', 'video']]
-            //['misc', ['undo', 'redo']]
+            ['picture', ['link', 'picture']]
         ],
     });
+    $('#write-comment').summernote('code', '');
+    $('#send_button_block').show();
+
+    $.connection.hub.start();
 
     commentsHub.client.deleteComment = function (commentId) {
-        // $('#' + commentId).closest('.comment-block').remove();
-        $("#comment_" + commentId).remove();
+        commentsModel.myObservableArray.remove(function (comment) {
+            return comment.commentId == commentId;
+        });
     }
 
     commentsHub.client.updateLastComment = function (commentId) {
@@ -216,48 +155,32 @@ $(function () {
             url: '/api/Comments',
             data: { "commentId": commentId },
             dataType: 'json',
-            success: function (data) {
-                if (data != null) {
-                    $('#comments').prepend(insertCommentInMarkup(data));
-                    updateCommentsDeleteButton();
+            success: function (comment) {
+                if (comment != null) {
+                    commentsModel.myObservableArray.unshift(comment);
                 }
             },
-            error: function () {
-            }
+            error: errorHandler
         });
     }
 });
 
-
-function updateCommentsDeleteButton() {
-    $('.delete-comment.close')
-        .each(function (index) {
-            $(this).unbind("click");
-            $(this)
-                .click(function (e) {
-                    var btn = $(this);
-                    var i_d = $(this).attr('id');
-                    $.ajax({
-                        method: 'DELETE',
-                        url: '/api/Comments/' + $(this).attr('id'),
-                        //data: { commentId: $(this).attr('id') },
-                        //dataType: 'html',
-                        success: function () {
-                            btn.closest('.comment-block').remove();
-                            commentsHub.server.deleteComment(btn.attr('id'));
-                        },
-                        error: function (e) {
-                            alert(e.status);
-                            alert(e.statusText);
-                            console.log(e.responseText);
-                        }
-                    });
-                });
-        });
+var photoModel = {
+    photos: ko.observableArray(),
+    isPhotosLoaded: ko.observable(false)
 }
+ko.applyBindings(photoModel, document.getElementById('photo_container'));
 
-function WriteCommentOnSuccess(data) {
-    $('#comments').prepend(data);
-    updateCommentsDeleteButton();
-    commentsHub.server.addComment($('.delete-comment.close').first().attr('id'));
-}
+$(function () {
+    $.get({
+        url: '/api/Photos',
+        data: { albumId: albumId },
+        success: function (photos) {
+            ko.utils.arrayPushAll(photoModel.photos, photos);
+        },
+        complete: function () {
+            photoModel.isPhotosLoaded(true);
+        },
+        error: errorHandler
+    });
+});
