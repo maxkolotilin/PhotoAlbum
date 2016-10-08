@@ -56,7 +56,7 @@
             </div>
         }
 
-        <div id="comments" hidden data-bind="foreach: { data:  myObservableArray, afterAdd: fadeIn, beforeRemove: fadeOut }">
+        <div id="comments" hidden data-bind="foreach: { data: comments, afterAdd: fadeIn, beforeRemove: fadeOut }">
             <div class="panel panel-default">
                 <div class="panel-heading heading-colors">
                     <div class="row">
@@ -89,14 +89,19 @@
 {
     <script src="~/Scripts/knockout-3.4.0.js"></script>
     <script src="~/Scripts/raterater.jquery.js"></script>
-    <script src="~/Scripts/summernote.js"></script>
+    <script src="~/Scripts/summernote.min.js"></script>
     <script src="~/Scripts/bootstrap-notify.min.js"></script>
-    <script src="~/Scripts/moment.js"></script>
+    <script src="~/Scripts/moment.min.js"></script>
     <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
     <script src="~/signalr/hubs"></script>
 
+    <script>
+        var albumId = @Model.Id;
+        var userId = '@User.Identity.GetUserId()';
+    </script>
     <script src="~/Scripts/errorHandling.js"></script>
-    <script scr="~/Scripts/pushNotifications.js"></script>
+    <script src="~/Scripts/pushNotifications.js"></script>
+    <script src="~/Scripts/rating.js"></script>
     <script src="~/Scripts/mobile.js"></script>
 }
 
