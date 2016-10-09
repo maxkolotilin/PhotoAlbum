@@ -7,7 +7,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="col-md-5 col-md-offset-1 column-vcenter">
             <h2>Details</h2>
 
             <div>
@@ -44,122 +44,18 @@
                 @Html.ActionLink("Edit", "Edit", new { id = Model.Album.Id }) |
                 @Html.ActionLink("Back to List", "Index") |
                 @Html.ActionLink("Slideshow", "Slideshow", new { albumId = Model.Album.Id })
-                @Html.ActionLink("Slideshow", "GetComments", new { albumId = Model.Album.Id, chunkIndex = 0, chunkSize = 10 })
-
             </p>
             <hr />
         </div>
-    </div>
 
-    @*<fieldset class="rating">
-            <legend>Please rate:</legend>
-            <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!"></label>
-            <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good"></label>
-            <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh"></label>
-            <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad"></label>
-            <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time"></label>
-        </fieldset>
-
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-        <div class="star-rating">
-            <div class="star-rating__wrap">
-                <input class="star-rating__input" id="star-rating-5" type="radio" name="rating" value="5">
-                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-5" title="5 out of 5 stars"></label>
-                <input class="star-rating__input" id="star-rating-4" type="radio" name="rating" value="4">
-                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-4" title="4 out of 5 stars"></label>
-                <input class="star-rating__input" id="star-rating-3" type="radio" name="rating" value="3">
-                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-3" title="3 out of 5 stars"></label>
-                <input class="star-rating__input" id="star-rating-2" type="radio" name="rating" value="2">
-                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-2" title="2 out of 5 stars"></label>
-                <input class="star-rating__input" id="star-rating-1" type="radio" name="rating" value="1">
-                <label class="star-rating__ico fa fa-star-o fa-lg" for="star-rating-1" title="1 out of 5 stars"></label>
+        <div class="col-md-5 text-center column-vcenter">
+            <div id="rating_block" hidden>
+                <h4>Rate album:</h4>
+                <div class="ratebox" data-id="ratebox_1" style="margin: auto;"></div>
             </div>
-        </div>*@
-
-    <!-- Lets add some rating boxes -->
-    @section scripts
-{
-        <script src="@Url.Content("~/Scripts/raterater.jquery.js")"></script>
-        <script>
-            var voteFlag = false;
-            var model;
-
-            function rateController(id, rating) {
-                alert('Rating for ' + id + ' is ' + rating + ' stars!');
-                model.rate = rating;
-                if (!voteFlag) {
-                    $.post({
-                        url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
-                        data: model,
-                        success: function (data) {
-                            voteFlag = true;
-                            model = data
-                        },
-                    });
-                } else {
-                    $.ajax({
-                        type: 'PUT',
-                        url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
-                        data: model,
-                        success: function (data) {
-
-                        },
-                    });
-                }
-            }
-            /* Here we initialize raterater on our rating boxes
-             */
-            $(function () {
-                $.get({
-                    url: "@Url.HttpRouteUrl("DefaultApi", new { controller = "Ratings" })",
-                    data: { "albumId": @Model.Album.Id,
-                        "userId": "@User.Identity.GetUserId()" },
-                    success: function (data) {
-                        if (data.id != 0) {
-                            voteFlag = true;
-                        } else {
-                            data.albumId = @Model.Album.Id;
-                            data.applicationUserId = "@User.Identity.GetUserId()";
-                        }
-                        model = data;
-                        $("div.ratebox").attr("data-rating", data.rate);
-                        $('.ratebox').raterater({
-                            submitFunction: 'rateController',
-                            allowChange: true,
-                            starWidth: 30,
-                            spaceWidth: 5,
-                            numStars: 5,
-                            step: 0.5
-                        });
-                    },
-                });
-            });
-        </script>
-
-    <script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
-        <script src="~/Scripts/summernote.js"></script>
-
-        <script src="~/Scripts/moment.js"></script>
-        <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
-        <script src="~/signalr/hubs"></script>
-        <script src="~/Scripts/knockout-3.4.0.js"></script>
-        <script src="~/Scripts/board.js"></script>
-    }
-
-    @section css
-{
-        <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
-    <link href="@Url.Content("~/Content/summernote.css")" rel="stylesheet" type="text/css">
-    
-    }
-    <div class="row">
-        <div class="ratebox" data-id="1" data-rating="2">
-            <div class="raterater-bg-layer">
-                <i class="fa fa-star" style="left: 0px; font-size: 32px;"></i>
-                <i class="fa fa-star" style="left: 35px; font-size: 32px;"></i>
-                <i class="fa fa-star" style="left: 70px; font-size: 32px;"></i>
-                <i class="fa fa-star" style="left: 105px; font-size: 32px;"></i>
-                <i class="fa fa-star" style="left: 140px; font-size: 32px;"></i>
+            <div id="rating_spinner">
+                <i class="fa fa-spinner fa-spin fa-5x fa-fw" style="color: mediumseagreen;"></i>
+                <span class="sr-only">Loading rating...</span>
             </div>
         </div>
     </div>
@@ -170,7 +66,7 @@
     @foreach (var photo in Model.Photos)
     {
         var url = $"/Photo/{ photo.Guid }";
-        var urlForAviary = String.Format("data:image;base64,{0}", Convert.ToBase64String(photo.Image));
+        var urlForAviary = string.Format("data:image;base64,{0}", Convert.ToBase64String(photo.Image));
 
         if (i % 3 == 0)
         {
@@ -211,176 +107,66 @@
         i++;
 
     }
-</div>
 
-@*comments*@
-@*<div class="container">
-        <div class="row">
-            <div class="col-md-4">
-                <form class="pad-bottom" data-bind="visible: !signedIn(), submit: signIn">
-                    <div class="form-group">
-                        <label for="username">Sign In</label>
-                        <input class="form-control" type="text" name="username" id="username" placeholder="Enter your userame" />
-                    </div>
-                    <button type="submit" class="btn btn-primary">Sign In</button>
-                    <br />
-                </form>
-
-                <div data-bind="visible: signedIn">
-                    <p>You are signed in as <strong data-bind="text: username"></strong></p>
+    <div>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div id="editor_block" hidden>
+                <h4>Comment album:</h4>
+                <div style="margin-bottom: 25px;">
+                    <div id="comment_editor"></div>
+                    @using (Ajax.BeginForm("WriteComment", "Albums",
+                        new AjaxOptions { OnSuccess = "writeCommentSuccessCallback" }))
+                    {
+                        <input type="hidden" name="albumId" id="album_id" value="@Model.Album.Id" />
+                        <input type="hidden" name="commentHtml" id="comment_html" value="" />
+                        <button type="submit" id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button>
+                    }
                 </div>
             </div>
-            <div class="col-md-8">
-                <div data-bind="visible: notifications().length > 0, foreach: notifications">
-                    <div class="summary alert alert-success alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <p data-bind="text: $data"></p>
-                    </div>
-                </div>
 
-                <div class="new-post pad-bottom" data-bind="visible: signedIn">
-                    <form data-bind="submit: writePost">
-                        <div class="form-group">
-                            <label for="message">Write a new post:</label>
-                            <textarea class="form-control" name="message" id="message" placeholder="New post"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-default">Submit</button>
-                    </form>
-                </div>
-
-                <ul class="posts list-unstyled" data-bind="foreach: posts">
-                    <li>
-                        <p>
-                            <span data-bind="text: username" class="username"></span><br />
-                        </p>
-                        <p>
-                            <span data-bind="text: message"></span>
-                        </p>
-
-                        <p class="no-pad-bottom date-posted">Posted <span data-bind="text: moment(date).calendar()" /></p>
-
-                        <div class="comments" data-bind="visible: $parent.signedIn() || comments().length > 0">
-                            <ul class="list-unstyled" data-bind="foreach: comments, visible: comments().length > 0">
-                                <li>
-
-                                    <p>
-                                        <span class="commentor" data-bind="text: username"></span>
-                                        <span data-bind="text: message"></span>
-                                    </p>
-                                    <p class="no-pad-bottom date-posted">Posted <span data-bind="text: moment(date).calendar()" /></p>
-                                </li>
-                            </ul>
-
-                            <form class="add-comment" data-bind="visible: $parent.signedIn, submit: addComment">
-                                <div class="row">
-                                    <div class="col-md-9">
-                                        <input type="text" class="form-control" name="comment" placeholder="Add a comment" />
-                                    </div>
-                                    <div class="col-md-3">
-                                        <button class="btn btn-default" type="submit">Add Comment</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </li>
-                </ul>
+            <div id="editor_spinner" class="text-center" style="margin: 25px;">
+                <i class="fa fa-spinner fa-spin fa-5x fa-fw" style="color: mediumseagreen;"></i>
+                <span class="sr-only">Loading editor...</span>
             </div>
-        </div>
-        </div>
-    </div>*@
-
-@*@section scripts {
-        <script src="~/Scripts/moment.js"></script>
-        <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
-        <script src="~/signalr/hubs"></script>
-        <script src="~/Scripts/knockout-3.4.0.js"></script>
-        <script src="~/Scripts/board.js"></script>
-    }*@
-
-<div>
-    @if (User.Identity.IsAuthenticated)
-    {
-        <h4>Comment album:</h4>
-            <div style="margin-bottom: 25px;">
-                <div id="write-comment"></div>
-                @*<div class="text-right">
-                        <button id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button>
-                    </div>*@
-                @using (Ajax.BeginForm("WriteComment", "Albums", new AjaxOptions
-                { OnSuccess = "WriteCommentOnSuccess" }))
-                {
-                    <input type="hidden" name="albumId" id="album_id" value="@Model.Album.Id" />
-                    <input type="hidden" name="commentHtml" id="comment_html" value="" />
-                            <button type="submit" id="send-comment" style="width: 150px;" class="btn btn-primary">Send</button>
-                }
-            </div>
-    }
-
-    <div id="comments">
-        @{ Html.RenderPartial("_CommentsPartial", new List<PhotoAlbum.Models.CommentView>()); }
-    </div>
-    <div id="progress" style="display: none">
-        <h4>Loading...</h4>
-    </div>
-
-    <input type="hidden" id="last_comment_id" />
-</div>
-
-
-<!-- Load Feather code -->
-<script type="text/javascript" src="http://feather.aviary.com/imaging/v3/editor.js"></script>
-
-<!-- Instantiate Feather -->
-<script type='text/javascript'>
-    function deletePhoto(id) {
-        $.ajax({
-            url: "/Photo/DeletePhoto",
-            dataType: 'html',
-            data: { "photoId": id },
-            type: 'DELETE',
-            success: function (data) {
-                $(".close").trigger("click");
-                setTimeout(() => { $("div." + id).remove() }, 250);
-            },
-            error: function (data) {
-                alert("Error while saving changes");
-            }
-        });
-    }
-
-    var featherEditor = new Aviary.Feather({
-        apiKey: 'c24143d191244ced89942d443a94c7ce',
-        theme: 'dark', // Check out our new 'light' and 'dark' themes!
-        tools: 'all',
-        appendTo: '',
-        onSave: function (imageID, newURL) {
-            var images = document.getElementsByClassName(imageID);
-            for (var i = 0; i < images.length; ++i) {
-                images[i].src = newURL;
-            }
-
-            $.ajax({
-                url: "/Albums/ReplaceImage",
-                dataType: 'html',
-                data: { "aviaryUrl": newURL, "id": imageID },
-                type: 'POST',
-                success: function (data) {
-
-                },
-                error: function (data) {
-                    alert("Error while saving changes");
-                }
-            });
-        },
-        onError: function (errorObj) {
-            alert(errorObj.message);
         }
-    });
-    function launchEditor(id, src) {
-        featherEditor.launch({
-            image: id,
-            url: src
-        });
-        return false;
-    }
-</script>
+
+        <div id="comments"></div>
+
+        <div id="comments_spinner" class="text-center" style="margin: 25px;">
+            <i class="fa fa-spinner fa-spin fa-5x fa-fw" style="color: mediumseagreen;"></i>
+            <span class="sr-only">Loading comments...</span>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+    <script src="~/Scripts/summernote.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script src="~/Scripts/bootstrap-notify.min.js"></script>
+
+    <script>
+        var albumId = @Model.Album.Id;
+        var userId = '@User.Identity.GetUserId()';
+        var starSize = 30;
+    </script>
+    <script src="~/Scripts/errorHandling.js"></script>
+    <script src="~/Scripts/pushNotifications.js"></script>
+    <script src="~/Scripts/raterater.jquery.js"></script>
+    <script src="~/Scripts/rating.js"></script>
+    <script src="~/Scripts/desktop.js"></script>
+
+    <!-- Aviary editor -->
+    <script type="text/javascript" src="http://feather.aviary.com/imaging/v3/editor.js"></script>
+    <script src="~/Scripts/aviary.js"></script>
+}
+
+@section css
+{
+    <link href="@Url.Content("~/Content/raterater.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/Content/summernote.css")" rel="stylesheet" type="text/css">
+    <link href="~/Content/animate.css" rel="stylesheet" type="text/css" />
+}

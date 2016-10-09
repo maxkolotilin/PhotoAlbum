@@ -15,7 +15,7 @@ var commentsModel = {
         });
     },
     sendButton: function () {
-        var commentHtml = $('#write-comment').summernote('code');
+        var commentHtml = $('#write_comment').summernote('code');
         if (commentHtml) {
             $.ajax({
                 type: 'POST',
@@ -25,12 +25,15 @@ var commentsModel = {
                     id: albumId
                 },
                 success: function (comment) {
-                    $('#write-comment').summernote('code', '');
+                    $('#write_comment').summernote('code', '');
                     commentsModel.comments.unshift(comment);
                     commentsHub.server.addComment(comment.commentId);
                 },
                 error: errorHandler
             });
+        } else {
+            pushNotify('fa fa-warning', '',
+                ' Empty comments is not allowed', 5000, 'danger');
         }
     },
     fadeIn: function (element) {
@@ -43,7 +46,7 @@ var commentsModel = {
         $('body').css('overflow', 'hidden');
         
         setTimeout(() => { $(element).remove(); $('body').css('overflow', ''); }, 600);
-    },
+    }
 }
 
 var photoModel = {
@@ -57,12 +60,14 @@ ko.applyBindings(commentsModel, document.getElementById('comments_block'));
 var commentsHub = $.connection.commentsHub;
 
 commentsHub.client.deleteComment = function (commentId) {
-    commentsModel.comments.remove(function (comment) {
-        return comment.commentId == commentId;
-    });
+    var comment = ko.utils.arrayFirst(commentsModel.comments(),
+        (c) => c.commentId == commentId)
+    pushNotify('fa fa-remove', '',
+        ' Comment from <strong>' + comment.userName + '</strong> was removed', 5000);
+    commentsModel.comments.remove(comment);
 }
 
-commentsHub.client.updateLastComment = function (commentId) {
+commentsHub.client.getLastComment = function (commentId) {
     $.ajax({
         type: 'GET',
         url: '/api/Comments',
@@ -71,6 +76,8 @@ commentsHub.client.updateLastComment = function (commentId) {
         success: function (comment) {
             if (comment != null) {
                 commentsModel.comments.unshift(comment);
+                pushNotify('fa fa-pencil', '',
+                    ' New comment from <strong>' + comment.userName + '</strong>', 5000);
             }
         },
         error: errorHandler
@@ -103,7 +110,7 @@ $(function () {
         error: errorHandler
     });
 
-    $('#write-comment').summernote({
+    $('#write_comment').summernote({
         minHeight: 100,
         placeholder: 'Write your comment here ...',
         toolbar: [
@@ -112,7 +119,7 @@ $(function () {
             ['picture', ['link', 'picture']]
         ],
     });
-    $('#write-comment').summernote('code', '');
+    $('#write_comment').summernote('code', '');   // remove spinner
     $('#send_button_block').show();
 
     $.connection.hub.start();

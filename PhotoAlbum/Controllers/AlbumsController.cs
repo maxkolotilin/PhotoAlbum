@@ -22,10 +22,9 @@ namespace PhotoAlbum.Controllers
         private CommentsCRUD commentsRepo = new CommentsCRUD();
 
         [HttpGet]
-        public ActionResult GetComments(int albumId, int chunkIndex, int chunkSize)
+        public ActionResult GetComments(int albumId)
         {
-            return PartialView("_CommentsPartial",
-                commentsRepo.GetCommentsChunk(albumId, chunkIndex, chunkSize));
+            return PartialView("_CommentsPartial", commentsRepo.GetAllComments(albumId));
         }
 
         [HttpDelete]
@@ -40,6 +39,11 @@ namespace PhotoAlbum.Controllers
         [ValidateInput(false)]
         public ActionResult WriteComment(string commentHtml, int albumId)
         {
+            if (string.IsNullOrEmpty(commentHtml) || string.IsNullOrWhiteSpace(commentHtml))
+            {
+                return null;
+            }
+
             var comment = commentsRepo.CreateComment(commentHtml, albumId, User.Identity.GetUserId());
             commentsRepo.SaveChanges();
 

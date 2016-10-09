@@ -399,3 +399,9 @@ form.add-comment  {
   -webkit-animation-name: commentFadeOutRightBig;
   animation-name: commentFadeOutRightBig;
 }
+
+.column-vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}

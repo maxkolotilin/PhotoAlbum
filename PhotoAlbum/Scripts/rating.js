@@ -1,9 +1,10 @@
-﻿// required global variables: albumId, userId 
+﻿// required global variables: albumId, userId
+// optional: starSize
 
 var rateModel;
 
 function RateModel(rating) {
-    if (rating.id != 0) {
+    if (rating.id !== 0) {
         this.method = 'PUT';
         this.notifyMessage = 'Your rating was updated';
     } else {
@@ -23,7 +24,7 @@ function rateController(id, rating) {
         data: rateModel.rating,
         success: function (data) {
             pushNotify('fa fa-star', '<strong> ' + rating + ' stars!</strong>',
-                rateModel.notifyMessage, 3000);
+                rateModel.notifyMessage, 3500);
             if (rateModel.method === 'POST') {
                 rateModel.method = 'PUT';
                 rateModel.notifyMessage = 'Your rating was updated';
@@ -48,7 +49,7 @@ $(function () {
             $('.ratebox').raterater({
                 submitFunction: 'rateController',
                 allowChange: true,
-                starWidth: 50,
+                starWidth: window.starSize || 50,
                 spaceWidth: 5,
                 numStars: 5,
                 step: 0.5
